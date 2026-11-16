@@ -367,15 +367,32 @@ function drawPort(
 function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig, L: ScreenLayout) {
   const mode = config.powerRoutingMode;
   const stroke = 3;
-
-  // Лимит кабинетов на один ввод питания.
-  // 0.5×1 (высокий) — 8 шт, 0.5×0.5 — 16 шт.
   const maxPerInput = (c: CabinetCell) => (c.height > 0.6 ? 8 : 16);
 
-  const groups = new Map<number, CabinetCell[]>();
-  const useCols = mode === "vertical_columns" ||
-    (mode === "same_as_signal" && screen.signalRoutingMode.includes("column"));
+  const drawChain = (cells: CabinetCell[]) => {
+    if (cells.length === 0) return;
+    const rects = cells.map(c => cellRect(c, L));
+    const isH = cells[0].row === cells[cells.length - 1].row;
+    const off = 8;
+    const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
+    parts.push(
+      `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
+    );
+    const first = rects[0];
+    parts.push(
+      `<circle cx="${round(first.cx)}" cy="${round(first.cy + (isH ? off : 0))}" r="4" fill="${C.power}"/>`
+    );
+  };
 
+  if (mode === "same_as_signal") {
+    // Питание повторяет цепочки портов сигнала (со смещением).
+    screen.ports.forEach(port => drawChain(port.cabinets));
+    return;
+  }
+
+  // Иначе — свои цепочки по рядам/колонкам с лимитом ввода.
+  const useCols = mode === "vertical_columns";
+  const groups = new Map<number, CabinetCell[]>();
   screen.cabinets.forEach(c => {
     const key = useCols ? c.col : c.row;
     const arr = groups.get(key) ?? [];
@@ -385,28 +402,10 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
 
   groups.forEach(cells => {
     cells.sort((a, b) => a.col - b.col || a.row - b.row);
-    // Дробим линию на цепочки по лимиту ввода.
     let chain: CabinetCell[] = [];
-    const flush = () => {
-      if (chain.length === 0) return;
-      const rects = chain.map(c => cellRect(c, L));
-      const isH = chain[0].row === chain[chain.length - 1].row;
-      const off = 6;
-      const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
-      parts.push(
-        `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
-      );
-      // Маркер ввода на первом кабинете цепочки.
-      const first = rects[0];
-      parts.push(
-        `<circle cx="${round(first.cx)}" cy="${round(first.cy + (isH ? 6 : 0))}" r="4" fill="${C.power}"/>`
-      );
-      chain = [];
-    };
-
+    const flush = () => { drawChain(chain); chain = []; };
     for (const c of cells) {
-      const limit = maxPerInput(c);
-      if (chain.length >= limit) flush();
+      if (chain.length >= maxPerInput(c)) flush();
       chain.push(c);
     }
     flush();
