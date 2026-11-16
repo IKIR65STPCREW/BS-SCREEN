@@ -84,6 +84,17 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
             <option value="back">Сзади</option>
           </select>
         </label>
+        <label className="field">
+          <span>Разводка питания</span>
+          <select
+            value={config.powerRoutingMode}
+            onChange={(e) => patch({ powerRoutingMode: e.target.value as ProjectConfig["powerRoutingMode"] })}
+          >
+            <option value="same_as_signal">Как сигнал</option>
+            <option value="horizontal_rows">Горизонтально</option>
+            <option value="vertical_columns">Вертикально</option>
+          </select>
+        </label>
 
         <IOSSwitch
           label="Backup включён"
