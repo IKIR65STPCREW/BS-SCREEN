@@ -11,8 +11,11 @@ import type { CabinetCell, PortGroup, SideName, SignalRoutingMode } from "../typ
  * Значения snake_* приводятся к линейным аналогам (совместимость со старыми
  * сохранёнными проектами).
  *
- * Бюджет порта считается ПО ПИКСЕЛЯМ (а не по числу модулей) — это корректно
- * работает и для смешанных модулей (0.5×1 + 0.5×0.5 в одном экране).
+ * Бюджет порта считается ПО ПИКСЕЛЯМ.
+ *
+ * Распределение равномерное: вместо жадного заполнения до лимита
+ * кабинеты в линии делятся на нужное число портов так, чтобы нагрузка была
+ * максимально равной по пикселям (без остатков на последнем порту).
  *
  * Соглашение: row=0 — нижний ряд, col=0 — левый столбец.
  */
@@ -79,11 +82,21 @@ export function buildPortGroups(
     });
   };
 
+  // Равномерное распределение внутри каждой линии (ряда или колонки).
   for (const line of lines) {
+    if (line.length === 0) continue;
+    const totalPixels = line.reduce((s, c) => s + c.pixelsTotal, 0);
+    const portsForLine = Math.max(1, Math.ceil(totalPixels / maxPixelsPerPort));
+    const targetPerPort = Math.ceil(totalPixels / portsForLine);
+
     let current: CabinetCell[] = [];
     let curPixels = 0;
-    for (const cell of line) {
-      if (current.length > 0 && curPixels + cell.pixelsTotal > maxPixelsPerPort) {
+
+    for (let i = 0; i < line.length; i++) {
+      const cell = line[i];
+      const wouldExceed = current.length > 0 && curPixels + cell.pixelsTotal > targetPerPort;
+      // Если превышаем цель и ещё остались кабинеты — закрываем порт
+      if (wouldExceed) {
         pushPort(current);
         current = [];
         curPixels = 0;
