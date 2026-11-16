@@ -227,19 +227,21 @@ function drawScreen(
     );
   });
 
-  // Цвет порта для каждой ячейки.
+  // Цвет порта для каждой ячейки (если опция включена).
   const portColorByCell = new Map<string, string>();
-  screen.ports.forEach((port, idx) => {
-    const base = PORT_COLORS[idx % PORT_COLORS.length];
-    port.cabinets.forEach((c) => portColorByCell.set(c.id, base));
-  });
+  if (config.colorCabinets !== false) {
+    screen.ports.forEach((port, idx) => {
+      const base = PORT_COLORS[idx % PORT_COLORS.length];
+      port.cabinets.forEach((c) => portColorByCell.set(c.id, base));
+    });
+  }
 
-  // Сетка — ячейки залиты цветом своего порта (заметная пастель).
+  // Сетка — ячейки залиты цветом своего порта или без заливки.
   parts.push(`<g stroke="${C.gridLine}" stroke-width="1">`);
   screen.cabinets.forEach((c) => {
     const r = cellRect(c, L);
     const color = portColorByCell.get(c.id);
-    const fill = color ? color + "66" : "#f3f4f6"; // ~40% opacity
+    const fill = color ? color + "66" : "none";
     parts.push(`<rect x="${round(r.x)}" y="${round(r.y)}" width="${round(r.w)}" height="${round(r.h)}" fill="${fill}"/>`);
   });
   parts.push(`</g>`);
