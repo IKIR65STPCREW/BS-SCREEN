@@ -31,7 +31,7 @@ export function ResultsPanel({ config, result, patchPlan }: Props) {
             v={`${result.cases.total}${casesDetail(result)}`}
           />
           <Row k="Силовые вводы" v={`${result.powerInputs} (16А)`} />
-          <Row k="Линии данных" v={`${result.dataLines}${result.backupEnabled ? " (с backup)" : ""}`} />
+          <Row k="Сетевые кабели" v={`${result.dataLines}${result.backupEnabled ? " (UP+BACKUP)" : " (только UP)"}`} />
           {patchPlan && (
             <Row k="Выходы HDMI" v={patchPlan.units.length} />
           )}
