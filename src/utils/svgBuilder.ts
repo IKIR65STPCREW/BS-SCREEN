@@ -373,7 +373,8 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
     if (cells.length === 0) return;
     const rects = cells.map(c => cellRect(c, L));
     const isH = cells[0].row === cells[cells.length - 1].row;
-    const off = 8;
+    const cellMin = Math.min(rects[0].w, rects[0].h);
+    const off = Math.max(22, cellMin * 0.45); // ниже бейджей U/B
     const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
     parts.push(
       `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
