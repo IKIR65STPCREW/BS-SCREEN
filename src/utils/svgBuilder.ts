@@ -199,8 +199,9 @@ function drawScreen(
     if (nx > 24 && col % 2 === 1 && col !== nx - 1) continue;
     const visualCol = L.flipX ? nx - 1 - col : col;
     const cx = L.gridLeft + visualCol * colW + colW / 2;
+    // Номера столбцов всегда слева направо (1 — слева).
     parts.push(
-      `<text x="${round(cx)}" y="${round(gridTop - 2)}" text-anchor="middle" font-family="system-ui" font-size="12" fill="${C.textMuted}">${col + 1}</text>`
+      `<text x="${round(cx)}" y="${round(gridTop - 2)}" text-anchor="middle" font-family="system-ui" font-size="12" fill="${C.textMuted}">${visualCol + 1}</text>`
     );
   }
   // Подписи рядов (берём по одной ячейке из каждого ряда, col=0).
@@ -226,8 +227,10 @@ function drawScreen(
   if (config.showCabinetNumbers) {
     screen.cabinets.forEach((c) => {
       const r = cellRect(c, L);
+      // В режиме «из зала» колонки зеркалятся — показываем номер так, чтобы 1.1 был слева.
+      const displayCol = L.flipX ? screen.cabinetCountX - c.col : c.col + 1;
       parts.push(
-        `<text x="${round(r.cx)}" y="${round(r.cy)}" text-anchor="middle" dominant-baseline="central" font-family="system-ui" font-size="10" fill="${C.textMuted}">${c.row + 1}.${c.col + 1}</text>`
+        `<text x="${round(r.cx)}" y="${round(r.cy)}" text-anchor="middle" dominant-baseline="central" font-family="system-ui" font-size="10" fill="${C.textMuted}">${c.row + 1}.${displayCol}</text>`
       );
     });
   }
