@@ -1,25 +1,25 @@
 /* ============================================================
    LED Scheme Builder — styles
-   Mobile-first, iOS-like friendly design.
+   Mobile-first, iOS-like dark design.
    ============================================================ */
 
 :root {
-  --bg: #f2f2f7;
-  --surface: #ffffff;
-  --surface-muted: #f9f9fb;
-  --border: #e5e5ea;
-  --border-strong: #d1d1d6;
-  --text: #1c1c1e;
-  --text-muted: #636366;
-  --primary: #007aff;
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --surface-muted: #2c2c2e;
+  --border: #38383a;
+  --border-strong: #48484a;
+  --text: #ffffff;
+  --text-muted: #8e8e93;
+  --primary: #0a84ff;
   --primary-dark: #0066d6;
-  --danger: #ff3b30;
-  --warn-bg: #fff3cd;
-  --warn-border: #ffe69c;
-  --warn-text: #856404;
+  --danger: #ff453a;
+  --warn-bg: #3d2f00;
+  --warn-border: #665200;
+  --warn-text: #ffd60a;
   --header-h: 56px;
 
-  --shadow-1: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
   --radius: 12px;
   --radius-sm: 10px;
 }
@@ -49,7 +49,7 @@ body {
 
 .app-header {
   height: var(--header-h);
-  background: rgba(255,255,255,0.92);
+  background: rgba(28,28,30,0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 0.5px solid var(--border);
@@ -179,7 +179,7 @@ body {
 .field input, .field select {
   appearance: none;
   -webkit-appearance: none;
-  background: var(--surface);
+  background: var(--surface-muted);
   color: var(--text);
   border: 0.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -192,7 +192,7 @@ body {
   min-width: 0;
 }
 .field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23636366' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238e8e93' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
@@ -200,7 +200,7 @@ body {
 .field input:focus, .field select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+  box-shadow: 0 0 0 3px rgba(10,132,255,0.25);
 }
 .field-hint {
   font-size: 12px;
@@ -239,7 +239,7 @@ body {
 }
 .field-checkbox input[type="checkbox"]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
+  box-shadow: 0 0 0 3px rgba(10,132,255,0.35);
 }
 .field-checkbox span { cursor: pointer; }
 
@@ -372,7 +372,7 @@ body {
   border-radius: var(--radius-sm);
   border: 0.5px solid var(--border);
 }
-.port-row.over { border-color: var(--danger); background: #fff2f2; }
+.port-row.over { border-color: var(--danger); background: #3d1a1a; }
 .port-num { font-weight: 700; font-size: 14px; }
 .port-info { font-size: 13px; line-height: 1.3; }
 .port-bar {
@@ -406,7 +406,7 @@ body {
 /* ===== Scheme ===== */
 
 .scheme-wrapper {
-  background: #fff;
+  background: #1c1c1e;
   border: 0.5px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-1);
@@ -432,7 +432,7 @@ body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -448,7 +448,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 .modal-header {
   display: flex;
@@ -480,7 +480,7 @@ body {
   margin-bottom: 8px;
   gap: 8px;
 }
-.project-item.active { border-color: var(--primary); background: #e8f2ff; }
+.project-item.active { border-color: var(--primary); background: #0a2a4a; }
 .project-name { font-weight: 600; }
 .project-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 .project-actions { display: flex; gap: 4px; }
@@ -492,7 +492,7 @@ body {
 .mobile-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.55);
   z-index: 50;
   display: flex;
   justify-content: flex-start;
@@ -597,23 +597,23 @@ body {
   height: 28px;
   border-radius: 50%;
   border: 0.5px solid var(--border-strong);
-  background: #fff;
+  background: var(--surface-muted);
   font-weight: 700;
   cursor: pointer;
   line-height: 1;
   color: var(--primary);
 }
-.why-btn:hover { background: #f2f2f7; }
+.why-btn:hover { background: #3a3a3c; }
 .processor-result {
   margin-top: 8px;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
-  background: #e8f2ff;
-  border: 0.5px solid #b3d4ff;
+  background: #0a2a4a;
+  border: 0.5px solid #1a4a7a;
 }
 .processor-result.over {
-  background: #fff2f2;
-  border-color: #ffb3b3;
+  background: #3d1a1a;
+  border-color: #7a2a2a;
 }
 .processor-name { font-weight: 600; font-size: 14px; }
 .processor-spec { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -669,5 +669,5 @@ body {
 .patch-screen-name { font-weight: 600; }
 .patch-screen-route { color: var(--text-muted); }
 .patch-ports { display: flex; gap: 12px; margin: 2px 0; flex-wrap: wrap; }
-.patch-up { color: #34c759; font-weight: 600; }
-.patch-bk { color: #ff9500; font-weight: 600; }
+.patch-up { color: #30d158; font-weight: 600; }
+.patch-bk { color: #ff9f0a; font-weight: 600; }
