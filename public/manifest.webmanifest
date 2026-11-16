@@ -1,6 +1,6 @@
 {
-  "name": "LED Scheme Builder",
-  "short_name": "LED Builder",
+  "name": "ScreenFlowBS",
+  "short_name": "ScreenFlowBS",
   "description": "Расчёт и схемы LED-экранов на пресетах P2.6 NovaStar — офлайн.",
   "lang": "ru",
   "start_url": "./",
