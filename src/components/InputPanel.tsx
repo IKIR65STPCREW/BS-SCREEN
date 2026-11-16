@@ -313,14 +313,11 @@ function ScreenCard({ screen, index, total, showFill, manualMode, defaultProcess
         </label>
 
         {showFill && (
-          <label className="field field-checkbox">
-            <input
-              type="checkbox"
-              checked={screen.fillHalfModules !== false}
-              onChange={(e) => onChange({ fillHalfModules: e.target.checked })}
-            />
-            <span>Добор 0.5 (докидывать ряд 0.5×0.5)</span>
-          </label>
+          <IOSSwitch
+            label="Добор 0.5 (докидывать ряд 0.5×0.5)"
+            checked={screen.fillHalfModules !== false}
+            onChange={(v) => onChange({ fillHalfModules: v })}
+          />
         )}
 
         {manualMode && (
