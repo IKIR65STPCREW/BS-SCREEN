@@ -97,6 +97,18 @@ export function App() {
   const [pmOpen, setPmOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<"none" | "inputs" | "results">("none");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    try {
+      const saved = localStorage.getItem("led-scheme-builder.theme");
+      if (saved === "dark" || saved === "light") return saved;
+    } catch {}
+    return "dark"; // default dark as previous version
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("led-scheme-builder.theme", theme); } catch {}
+  }, [theme]);
 
   const svgRef = useRef<string>("");
 
@@ -192,7 +204,7 @@ export function App() {
     <>
       <AppShell
         toolbar={toolbar}
-        inputs={<InputPanel config={config} onChange={setConfig} recommendation={recommendation} patchPlan={patchPlan} />}
+        inputs={<InputPanel config={config} onChange={setConfig} recommendation={recommendation} patchPlan={patchPlan} theme={theme} onThemeChange={setTheme} />}
         results={<ResultsPanel config={config} result={result} recommendation={recommendation} patchPlan={patchPlan} />}
         warnings={<Warnings warnings={result.warnings} />}
         scheme={
@@ -214,7 +226,7 @@ export function App() {
           <div className="mobile-overlay-inner" onClick={(e) => e.stopPropagation()}>
             <button className="btn-close" onClick={() => setSidebarOpen("none")}>×</button>
             {sidebarOpen === "inputs" ? (
-              <InputPanel config={config} onChange={setConfig} recommendation={recommendation} patchPlan={patchPlan} />
+              <InputPanel config={config} onChange={setConfig} recommendation={recommendation} patchPlan={patchPlan} theme={theme} onThemeChange={setTheme} />
             ) : (
               <ResultsPanel config={config} result={result} recommendation={recommendation} patchPlan={patchPlan} />
             )}
