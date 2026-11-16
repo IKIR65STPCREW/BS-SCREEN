@@ -367,35 +367,49 @@ function drawPort(
 function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig, L: ScreenLayout) {
   const mode = config.powerRoutingMode;
   const stroke = 3;
-  const groups = new Map<number, CabinetCell[]>();
 
-  if (mode === "vertical_columns") {
-    screen.cabinets.forEach(c => {
-      const arr = groups.get(c.col) ?? [];
-      arr.push(c);
-      groups.set(c.col, arr);
-    });
-  } else if (mode === "horizontal_rows" || mode === "same_as_signal") {
-    // same_as_signal: follow signal direction roughly by using rows if signal is horizontal
-    const useCols = mode === "same_as_signal" && screen.signalRoutingMode.includes("column");
-    screen.cabinets.forEach(c => {
-      const key = useCols ? c.col : c.row;
-      const arr = groups.get(key) ?? [];
-      arr.push(c);
-      groups.set(key, arr);
-    });
-  }
+  // Лимит кабинетов на один ввод питания.
+  // 0.5×1 (высокий) — 8 шт, 0.5×0.5 — 16 шт.
+  const maxPerInput = (c: CabinetCell) => (c.height > 0.6 ? 8 : 16);
+
+  const groups = new Map<number, CabinetCell[]>();
+  const useCols = mode === "vertical_columns" ||
+    (mode === "same_as_signal" && screen.signalRoutingMode.includes("column"));
+
+  screen.cabinets.forEach(c => {
+    const key = useCols ? c.col : c.row;
+    const arr = groups.get(key) ?? [];
+    arr.push(c);
+    groups.set(key, arr);
+  });
 
   groups.forEach(cells => {
     cells.sort((a, b) => a.col - b.col || a.row - b.row);
-    const rects = cells.map(c => cellRect(c, L));
-    if (rects.length === 0) return;
-    const isH = cells[0].row === cells[cells.length - 1].row;
-    const off = 6;
-    const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
-    parts.push(
-      `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
-    );
+    // Дробим линию на цепочки по лимиту ввода.
+    let chain: CabinetCell[] = [];
+    const flush = () => {
+      if (chain.length === 0) return;
+      const rects = chain.map(c => cellRect(c, L));
+      const isH = chain[0].row === chain[chain.length - 1].row;
+      const off = 6;
+      const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
+      parts.push(
+        `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
+      );
+      // Маркер ввода на первом кабинете цепочки.
+      const first = rects[0];
+      parts.push(
+        `<circle cx="${round(first.cx)}" cy="${round(first.cy + (isH ? 6 : 0))}" r="4" fill="${C.power}"/>`
+      );
+      chain = [];
+    };
+
+    for (const c of cells) {
+      const limit = maxPerInput(c);
+      if (chain.length >= limit) flush();
+      chain.push(c);
+    }
+    flush();
   });
 }
 
