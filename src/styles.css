@@ -436,3 +436,25 @@ body {
 .patch-ports { display: flex; gap: 12px; margin: 2px 0; flex-wrap: wrap; }
 .patch-up { color: #30d158; font-weight: 600; }
 .patch-bk { color: #ff9f0a; font-weight: 600; }
+
+/* ===== Header brand ===== */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+.header-logo {
+  height: 28px;
+  width: auto;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.header-title {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+}

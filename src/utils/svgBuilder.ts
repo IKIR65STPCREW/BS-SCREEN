@@ -22,6 +22,20 @@ import { formatKw, formatKg, aspectRatio } from "./calculations";
 import { formatPortsSlash, buildLinkInfo } from "./processor";
 import { LOGO_DATA_URI, LOGO_ASPECT } from "../data/logo";
 
+// Приятные различимые цвета для линий портов (циклически).
+const PORT_COLORS = [
+  "#3b82f6", // blue
+  "#22c55e", // green
+  "#f97316", // orange
+  "#a855f7", // purple
+  "#06b6d4", // cyan
+  "#eab308", // yellow
+  "#ec4899", // pink
+  "#14b8a6", // teal
+  "#f43f5e", // rose
+  "#8b5cf6", // violet
+];
+
 const C = {
   bg: "#ffffff",
   gridLine: "#d4d4d4",
@@ -298,7 +312,7 @@ function drawPort(
     isHorizontal ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy }
   );
 
-  const sigColor = port.isOverLimit ? C.warn : C.signal;
+  const sigColor = port.isOverLimit ? C.warn : PORT_COLORS[portIndex % PORT_COLORS.length];
   // Сигнал — сплошная синяя линия.
   parts.push(
     `<polyline points="${sigPts.map((p) => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${sigColor}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`
