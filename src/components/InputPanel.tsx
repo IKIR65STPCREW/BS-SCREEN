@@ -106,6 +106,11 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
           onChange={(v) => patch({ showLegend: v })}
         />
         <IOSSwitch
+          label="Окрашивать кабинеты по портам"
+          checked={config.colorCabinets ?? true}
+          onChange={(v) => patch({ colorCabinets: v })}
+        />
+        <IOSSwitch
           label="Тёмная тема"
           checked={theme === "dark"}
           onChange={(v) => onThemeChange(v ? "dark" : "light")}
