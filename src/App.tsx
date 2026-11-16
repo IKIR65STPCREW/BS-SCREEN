@@ -39,6 +39,7 @@ function normalizeConfig(raw: any): ProjectConfig {
       showCabinetNumbers: raw.showCabinetNumbers ?? true,
       showPortNumbers: raw.showPortNumbers ?? true,
       showLegend: raw.showLegend ?? true,
+      colorCabinets: raw.colorCabinets ?? true,
       processorMode: raw.processorMode ?? "auto",
       processorId: raw.processorId ?? "vx1000",
       screens
@@ -71,6 +72,7 @@ function normalizeConfig(raw: any): ProjectConfig {
     showCabinetNumbers: raw?.showCabinetNumbers ?? true,
     showPortNumbers: raw?.showPortNumbers ?? true,
     showLegend: raw?.showLegend ?? true,
+    colorCabinets: raw?.colorCabinets ?? true,
     processorMode: raw?.processorMode ?? "auto",
     processorId: raw?.processorId ?? "vx1000",
     screens
