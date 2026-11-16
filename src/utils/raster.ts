@@ -53,7 +53,11 @@ export async function rasterizeSvg(
   img.crossOrigin = "anonymous";
 
   await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
+    img.onload = () => {
+      // Даём время вложенным <image> (логотип) дорисоваться.
+      // Без этого лого часто пропадает при экспорте в canvas.
+      setTimeout(resolve, 120);
+    };
     img.onerror = (e) => reject(e);
     img.src = encoded;
   });

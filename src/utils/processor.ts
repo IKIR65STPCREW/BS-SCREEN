@@ -162,6 +162,9 @@ interface Bin {
   screens: ScreenResult[];
   ports: number;
   pixels: number;
+  // Для проверки канвы при упаковке нескольких экранов.
+  totalWidth: number;
+  totalHeight: number;
 }
 
 /** Наименьшая модель, вмещающая экран по портам/пикселям/канве. */
@@ -173,7 +176,7 @@ function smallestModelFor(ports: number, pixels: number, w: number, h: number): 
 
 /**
  * Строит патч-план: раскидывает экраны по процессорам, упаковывая по ресурсам
- * (порты + пиксели).
+ * (порты + пиксели + канва).
  *
  *  - AUTO: модель подбирается ПОД КАЖДЫЙ процессор отдельно (могут быть разные).
  *    Экраны идут от тяжёлого к лёгкому; каждый пытается влезть в уже открытый
@@ -207,7 +210,7 @@ export function buildPatchPlan(config: ProjectConfig, result: ProjectResult): Pa
           `Экран «${s.name}»: ${model.name} не тянет (${need} порт./${px.toLocaleString("ru-RU")} px при лимите ${model.portCount} порт./${model.maxTotalPixels.toLocaleString("ru-RU")} px).`
         );
       }
-      bins.push({ processor: model, screens: [s], ports: need, pixels: px });
+      bins.push({ processor: model, screens: [s], ports: need, pixels: px, totalWidth: s.resolutionX, totalHeight: s.resolutionY });
     }
   } else {
     // АВТО: упаковка экранов по ресурсам, модель подбирается под каждый юнит.
@@ -221,12 +224,17 @@ export function buildPatchPlan(config: ProjectConfig, result: ProjectResult): Pa
       const fitBin = bins.find(
         (b) =>
           b.ports + need <= b.processor.portCount &&
-          b.pixels + px <= b.processor.maxTotalPixels
+          b.pixels + px <= b.processor.maxTotalPixels &&
+          // Грубая проверка канвы: сумма ширин (экраны в ряд) и макс. высота.
+          b.totalWidth + s.resolutionX <= b.processor.maxWidth &&
+          Math.max(b.totalHeight, s.resolutionY) <= b.processor.maxHeight
       );
       if (fitBin) {
         fitBin.screens.push(s);
         fitBin.ports += need;
         fitBin.pixels += px;
+        fitBin.totalWidth += s.resolutionX;
+        fitBin.totalHeight = Math.max(fitBin.totalHeight, s.resolutionY);
         continue;
       }
       let model = smallestModelFor(need, px, s.resolutionX, s.resolutionY);
@@ -237,7 +245,14 @@ export function buildPatchPlan(config: ProjectConfig, result: ProjectResult): Pa
             `больше, чем у ${model.name}. Нужна разбивка/каскад.`
         );
       }
-      bins.push({ processor: model, screens: [s], ports: need, pixels: px });
+      bins.push({
+        processor: model,
+        screens: [s],
+        ports: need,
+        pixels: px,
+        totalWidth: s.resolutionX,
+        totalHeight: s.resolutionY
+      });
     }
   }
 
@@ -313,7 +328,7 @@ export function formatPorts(ports: number[]): string {
   return ports.join("/");
 }
 
-/** Список портов через слэш: [1,2,3,4,5,6] → "1/2/3/4/5/6". */
+/** Список потов через слэш: [1,2,3,4,5,6] → "1/2/3/4/5/6". */
 export function formatPortsSlash(ports: number[]): string {
   if (ports.length === 0) return "—";
   return ports.join("/");
