@@ -439,7 +439,7 @@ function buildAllLines(
   lines.push(`Кофры: ${r.cases.total}${caseParts.length ? " — " + caseParts.join(", ") : ""}`);
 
   // Вводные по проводам.
-  lines.push(`Вводные: силовых ${r.powerInputs} (16А≈3.5кВт), линий данных ${r.dataLines}${r.backupEnabled ? " (с backup)" : ""}`);
+  lines.push(`Вводные: силовых ${r.powerInputs} (16А≈3.5кВт), сетевых кабелей ${r.dataLines}${r.backupEnabled ? " (UP+BACKUP)" : ""}`);
 
   if (patch && patch.units.length > 0) {
     // Сводка по моделям (могут быть разные).
@@ -491,6 +491,8 @@ function buildScreenCaption(
   lines.push({ text: `Модули ${s.cabinetCountX}×${s.cabinetCountY} = ${s.totalCabinets}`, bold: !patch });
   lines.push({ text: `Разрешение ${s.resolutionX}×${s.resolutionY} · ${aspectRatio(s.resolutionX, s.resolutionY)}` });
   lines.push({ text: `Порты (сигнал): ${s.portsNeeded}` });
+  const cables = backupEnabled ? s.portsNeeded * 2 : s.portsNeeded;
+  lines.push({ text: `Сетевые кабели: ${cables}${backupEnabled ? " (UP+BACKUP)" : ""}` });
   lines.push({ text: `${formatKw(s.totalPowerKw)} · ${formatKg(s.totalWeightKg)} · ноги ${s.legsCount}` });
   return lines;
 }

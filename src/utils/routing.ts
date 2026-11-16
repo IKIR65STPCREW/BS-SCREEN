@@ -82,29 +82,41 @@ export function buildPortGroups(
     });
   };
 
-  // Равномерное распределение внутри каждой линии (ряда или колонки).
+  // Равномерное распределение внутри каждой линии.
+  // Делим кабинеты линии на минимально необходимое число портов
+  // так, чтобы размеры портов отличались не больше чем на 1 кабинет.
   for (const line of lines) {
     if (line.length === 0) continue;
     const totalPixels = line.reduce((s, c) => s + c.pixelsTotal, 0);
-    const portsForLine = Math.max(1, Math.ceil(totalPixels / maxPixelsPerPort));
-    const targetPerPort = Math.ceil(totalPixels / portsForLine);
+    let portsForLine = Math.max(1, Math.ceil(totalPixels / maxPixelsPerPort));
 
-    let current: CabinetCell[] = [];
-    let curPixels = 0;
-
-    for (let i = 0; i < line.length; i++) {
-      const cell = line[i];
-      const wouldExceed = current.length > 0 && curPixels + cell.pixelsTotal > targetPerPort;
-      // Если превышаем цель и ещё остались кабинеты — закрываем порт
-      if (wouldExceed) {
-        pushPort(current);
-        current = [];
-        curPixels = 0;
+    // Защита: если после деления какой-то порт всё же превысит лимит по пикселям
+    // (редко, при очень разных модулях), увеличиваем число портов.
+    while (portsForLine < line.length) {
+      const base = Math.floor(line.length / portsForLine);
+      const extra = line.length % portsForLine;
+      let ok = true;
+      let idx = 0;
+      for (let p = 0; p < portsForLine; p++) {
+        const count = base + (p < extra ? 1 : 0);
+        const slice = line.slice(idx, idx + count);
+        const px = slice.reduce((s, c) => s + c.pixelsTotal, 0);
+        if (px > maxPixelsPerPort) { ok = false; break; }
+        idx += count;
       }
-      current.push(cell);
-      curPixels += cell.pixelsTotal;
+      if (ok) break;
+      portsForLine++;
     }
-    pushPort(current);
+
+    const base = Math.floor(line.length / portsForLine);
+    const extra = line.length % portsForLine;
+    let idx = 0;
+    for (let p = 0; p < portsForLine; p++) {
+      const count = base + (p < extra ? 1 : 0);
+      if (count <= 0) continue;
+      pushPort(line.slice(idx, idx + count));
+      idx += count;
+    }
   }
 
   return ports;
