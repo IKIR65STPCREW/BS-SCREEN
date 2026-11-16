@@ -37,6 +37,7 @@ export function makeDefaultConfig(): ProjectConfig {
     showCabinetNumbers: true,
     showPortNumbers: true,
     showLegend: true,
+    colorCabinets: true,
     processorMode: "auto",
     processorId: "vx1000",
     screens: [makeDefaultScreen({ name: "Центр" })]
