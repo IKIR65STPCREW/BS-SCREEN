@@ -260,10 +260,13 @@ function drawScreen(
     });
   }
 
-  // Сигнал/питание по портам.
+  // Сигнал по портам.
   screen.ports.forEach((port, idx) => {
     drawPort(parts, port, config, L, patch, idx);
   });
+
+  // Питание — отдельной разводкой.
+  drawPower(parts, screen, config, L);
 
   // Стойки: по 1 на метр, ставятся ВНУТРИ — по центру каждого метрового сегмента.
   if (screen.legsCount > 0) {
@@ -319,18 +322,10 @@ function drawPort(
   const sigPts = rects.map((r) =>
     isHorizontal ? { x: r.cx, y: r.cy - off } : { x: r.cx - off, y: r.cy }
   );
-  const pwrPts = rects.map((r) =>
-    isHorizontal ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy }
-  );
-
   const sigColor = port.isOverLimit ? C.warn : PORT_COLORS[portIndex % PORT_COLORS.length];
-  // Сигнал — сплошная синяя линия.
+  // Сигнал — сплошная линия цвета порта.
   parts.push(
     `<polyline points="${sigPts.map((p) => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${sigColor}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`
-  );
-  // Питание — оранжевая ПУНКТИРНАЯ линия (отличается даже в ч/б печати).
-  parts.push(
-    `<polyline points="${pwrPts.map((p) => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
   );
 
   // U/B — ВНУТРИ модулей (в первой/последней ячейке порта).
@@ -367,6 +362,41 @@ function drawPort(
       }
     }
   }
+}
+
+function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig, L: ScreenLayout) {
+  const mode = config.powerRoutingMode;
+  const stroke = 3;
+  const groups = new Map<number, CabinetCell[]>();
+
+  if (mode === "vertical_columns") {
+    screen.cabinets.forEach(c => {
+      const arr = groups.get(c.col) ?? [];
+      arr.push(c);
+      groups.set(c.col, arr);
+    });
+  } else if (mode === "horizontal_rows" || mode === "same_as_signal") {
+    // same_as_signal: follow signal direction roughly by using rows if signal is horizontal
+    const useCols = mode === "same_as_signal" && screen.signalRoutingMode.includes("column");
+    screen.cabinets.forEach(c => {
+      const key = useCols ? c.col : c.row;
+      const arr = groups.get(key) ?? [];
+      arr.push(c);
+      groups.set(key, arr);
+    });
+  }
+
+  groups.forEach(cells => {
+    cells.sort((a, b) => a.col - b.col || a.row - b.row);
+    const rects = cells.map(c => cellRect(c, L));
+    if (rects.length === 0) return;
+    const isH = cells[0].row === cells[cells.length - 1].row;
+    const off = 6;
+    const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
+    parts.push(
+      `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
+    );
+  });
 }
 
 function squareBadge(cx: number, cy: number, size: number, fill: string, text: string, textColor: string): string {

@@ -198,24 +198,6 @@ export function App() {
           <option value="webp">WebP (лёгкий)</option>
         </select>
       )}
-      <button className="btn small" onClick={() => {
-        const blob = new Blob([JSON.stringify({ config, result }, null, 2)], { type: "application/json" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = (config.projectName || "project") + ".json";
-        a.click();
-      }}>JSON</button>
-      <button className="btn small" onClick={() => {
-        const rows = ["Экран,Порт,Модулей,Пиксели,Загрузка%"];
-        result.screens.forEach(s => s.ports.forEach(p => {
-          rows.push(`"${s.name}",${p.portNumber},${p.cabinets.length},${p.pixels},${p.loadPercent.toFixed(1)}`);
-        }));
-        const blob = new Blob([rows.join("\n")], { type: "text/csv" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = (config.projectName || "patch") + ".csv";
-        a.click();
-      }}>CSV</button>
       <button className="btn ghost mobile-only" onClick={() => setSidebarOpen("results")}>Σ</button>
     </>
   );
