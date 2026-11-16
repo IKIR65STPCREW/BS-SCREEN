@@ -227,11 +227,20 @@ function drawScreen(
     );
   });
 
-  // Сетка — рисуем каждую ячейку по её метрике (поддержка смешанных рядов).
-  parts.push(`<g stroke="${C.gridLine}" stroke-width="1" fill="none">`);
+  // Цвет порта для каждой ячейки.
+  const portColorByCell = new Map<string, string>();
+  screen.ports.forEach((port, idx) => {
+    const base = PORT_COLORS[idx % PORT_COLORS.length];
+    port.cabinets.forEach((c) => portColorByCell.set(c.id, base));
+  });
+
+  // Сетка — ячейки залиты цветом своего порта (заметная пастель).
+  parts.push(`<g stroke="${C.gridLine}" stroke-width="1">`);
   screen.cabinets.forEach((c) => {
     const r = cellRect(c, L);
-    parts.push(`<rect x="${round(r.x)}" y="${round(r.y)}" width="${round(r.w)}" height="${round(r.h)}"/>`);
+    const color = portColorByCell.get(c.id);
+    const fill = color ? color + "66" : "#f3f4f6"; // ~40% opacity
+    parts.push(`<rect x="${round(r.x)}" y="${round(r.y)}" width="${round(r.w)}" height="${round(r.h)}" fill="${fill}"/>`);
   });
   parts.push(`</g>`);
   parts.push(
