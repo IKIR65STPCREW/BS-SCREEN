@@ -131,6 +131,7 @@ export interface ProjectConfig {
   showCabinetNumbers: boolean;
   showPortNumbers: boolean;
   showLegend: boolean;
+  colorCabinets: boolean;          // окрашивать ячейки цветом порта
   processorMode: ProcessorMode;   // авто-подбор или ручной выбор процессора
   processorId: string;            // выбранный вручную процессор (при manual)
   screens: ScreenConfig[];
