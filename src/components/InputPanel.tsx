@@ -8,6 +8,7 @@ import {
 } from "../data/cabinetPresets";
 import { PROCESSORS } from "../data/processors";
 import { NumericField } from "./NumericField";
+import { IOSSwitch } from "./IOSSwitch";
 import { makeDefaultScreen, makeStageLCRConfig } from "../utils/defaults";
 
 interface Props {
@@ -15,9 +16,11 @@ interface Props {
   onChange: (next: ProjectConfig) => void;
   recommendation?: ProcessorRecommendation;
   patchPlan?: PatchPlan;
+  theme: "light" | "dark";
+  onThemeChange: (theme: "light" | "dark") => void;
 }
 
-export function InputPanel({ config, onChange, recommendation, patchPlan }: Props) {
+export function InputPanel({ config, onChange, recommendation, patchPlan, theme, onThemeChange }: Props) {
   const preset = getPresetById(config.cabinetPresetId);
   const presetIdForSelect = canonicalPresetId(config.cabinetPresetId);
   const tall = isTallModule(preset);
@@ -82,22 +85,31 @@ export function InputPanel({ config, onChange, recommendation, patchPlan }: Prop
           </select>
         </label>
 
-        <label className="field field-checkbox">
-          <input type="checkbox" checked={config.backupEnabled} onChange={(e) => patch({ backupEnabled: e.target.checked })} />
-          <span>Backup включён</span>
-        </label>
-        <label className="field field-checkbox">
-          <input type="checkbox" checked={config.showCabinetNumbers} onChange={(e) => patch({ showCabinetNumbers: e.target.checked })} />
-          <span>Показывать номера модулей</span>
-        </label>
-        <label className="field field-checkbox">
-          <input type="checkbox" checked={config.showPortNumbers} onChange={(e) => patch({ showPortNumbers: e.target.checked })} />
-          <span>Показывать номера портов</span>
-        </label>
-        <label className="field field-checkbox">
-          <input type="checkbox" checked={config.showLegend} onChange={(e) => patch({ showLegend: e.target.checked })} />
-          <span>Показывать легенду</span>
-        </label>
+        <IOSSwitch
+          label="Backup включён"
+          checked={config.backupEnabled}
+          onChange={(v) => patch({ backupEnabled: v })}
+        />
+        <IOSSwitch
+          label="Показывать номера модулей"
+          checked={config.showCabinetNumbers}
+          onChange={(v) => patch({ showCabinetNumbers: v })}
+        />
+        <IOSSwitch
+          label="Показывать номера портов"
+          checked={config.showPortNumbers}
+          onChange={(v) => patch({ showPortNumbers: v })}
+        />
+        <IOSSwitch
+          label="Показывать легенду"
+          checked={config.showLegend}
+          onChange={(v) => patch({ showLegend: v })}
+        />
+        <IOSSwitch
+          label="Тёмная тема"
+          checked={theme === "dark"}
+          onChange={(v) => onThemeChange(v ? "dark" : "light")}
+        />
       </div>
 
       {/* ===== Процессор ===== */}
