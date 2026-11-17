@@ -398,8 +398,9 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
       `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
     );
     const first = rects[0];
+    const markerY = isH ? first.cy + 6 : first.cy;
     parts.push(
-      `<circle cx="${round(first.cx)}" cy="${round(first.cy + (isH ? off : 0))}" r="4" fill="${C.power}"/>`
+      `<circle cx="${round(first.cx)}" cy="${round(markerY)}" r="4" fill="${C.power}"/>`
     );
   };
 
