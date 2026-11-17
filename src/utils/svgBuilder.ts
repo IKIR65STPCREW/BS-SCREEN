@@ -314,26 +314,31 @@ function drawPort(
   const isHorizontal = first.row === last.row;
   const stroke = 3;
 
-  // Смещение сигнала/питания перпендикулярно линии, чтобы они НЕ сливались.
   const rects = cells.map((c) => cellRect(c, L));
-  const cellMin = Math.min(rects[0].w, rects[0].h);
-  const off = clamp(cellMin * 0.28, 8, 20);
+  const firstRect = rects[0];
+  const lastRect = rects[rects.length - 1];
+  const uSize = clamp(Math.min(firstRect.w, firstRect.h) * 0.66, 13, 34);
+  const bSize = clamp(Math.min(lastRect.w, lastRect.h) * 0.66, 13, 34);
 
-  const sigPts = rects.map((r) =>
-    isHorizontal ? { x: r.cx, y: r.cy - off } : { x: r.cx - off, y: r.cy }
-  );
+  // Направление от первой ячейки к последней.
+  const dx = lastRect.cx - firstRect.cx;
+  const dy = lastRect.cy - firstRect.cy;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+
+  // Линия сигнала: от края U до края B, через центры промежуточных.
+  const startPt = { x: firstRect.cx + ux * (uSize / 2), y: firstRect.cy + uy * (uSize / 2) };
+  const endPt = { x: lastRect.cx - ux * (bSize / 2), y: lastRect.cy - uy * (bSize / 2) };
+  const midPts = rects.slice(1, -1).map(r => ({ x: r.cx, y: r.cy }));
+  const sigPts = [startPt, ...midPts, endPt];
+
   const sigColor = port.isOverLimit ? C.warn : PORT_COLORS[portIndex % PORT_COLORS.length];
-  // Сигнал — сплошная линия цвета порта.
   parts.push(
     `<polyline points="${sigPts.map((p) => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${sigColor}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`
   );
 
   // U/B — ВНУТРИ модулей (в первой/последней ячейке порта).
-  const firstRect = rects[0];
-  const lastRect = rects[rects.length - 1];
-
-  const uSize = clamp(Math.min(firstRect.w, firstRect.h) * 0.66, 13, 34);
-  const bSize = clamp(Math.min(lastRect.w, lastRect.h) * 0.66, 13, 34);
 
   // U в центре первой ячейки.
   parts.push(squareBadge(firstRect.cx, firstRect.cy, uSize, C.uFill, "U", C.uText));
@@ -369,13 +374,26 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
   const stroke = 3;
   const maxPerInput = (c: CabinetCell) => (c.height > 0.6 ? 8 : 16);
 
-  const drawChain = (cells: CabinetCell[]) => {
+  const drawChain = (cells: CabinetCell[], connectToBadges = false) => {
     if (cells.length === 0) return;
     const rects = cells.map(c => cellRect(c, L));
     const isH = cells[0].row === cells[cells.length - 1].row;
-    const cellMin = Math.min(rects[0].w, rects[0].h);
-    const off = Math.max(22, cellMin * 0.45); // ниже бейджей U/B
-    const pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
+    let pts;
+    if (connectToBadges && rects.length >= 1) {
+      const fr = rects[0], lr = rects[rects.length - 1];
+      const us = clamp(Math.min(fr.w, fr.h) * 0.66, 13, 34);
+      const bs = clamp(Math.min(lr.w, lr.h) * 0.66, 13, 34);
+      const ddx = lr.cx - fr.cx, ddy = lr.cy - fr.cy;
+      const llen = Math.hypot(ddx, ddy) || 1;
+      const uux = ddx / llen, uuy = ddy / llen;
+      const sp = { x: fr.cx + uux * (us / 2), y: fr.cy + uuy * (us / 2) };
+      const ep = { x: lr.cx - uux * (bs / 2), y: lr.cy - uuy * (bs / 2) };
+      pts = [sp, ...rects.slice(1, -1).map(r => ({ x: r.cx, y: r.cy })), ep];
+    } else {
+      const cellMin = Math.min(rects[0].w, rects[0].h);
+      const off = Math.max(18, cellMin * 0.4);
+      pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
+    }
     parts.push(
       `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
     );
@@ -387,7 +405,7 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
 
   if (mode === "same_as_signal") {
     // Питание повторяет цепочки портов сигнала (со смещением).
-    screen.ports.forEach(port => drawChain(port.cabinets));
+    screen.ports.forEach(port => drawChain(port.cabinets, true));
     return;
   }
 
