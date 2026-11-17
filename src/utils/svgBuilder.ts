@@ -328,16 +328,15 @@ function drawPort(
   const uy = dy / len;
   const px = -uy;
   const py = ux;
-  const lineOff = Math.max(20, Math.min(firstRect.w, firstRect.h) * 0.48);
+  const lineOff = Math.max(14, Math.min(firstRect.w, firstRect.h) * 0.32);
 
   // Сигнал — выше/левее, от края U до края B.
-  const gap = 10;
-  const startPt = { x: firstRect.cx + ux * (uSize / 2 + gap) + px * lineOff, y: firstRect.cy + uy * (uSize / 2 + gap) + py * lineOff };
-  const endPt = { x: lastRect.cx - ux * (bSize / 2 + gap) + px * lineOff, y: lastRect.cy - uy * (bSize / 2 + gap) + py * lineOff };
+  const startPt = { x: firstRect.cx + ux * (uSize / 2) + px * lineOff, y: firstRect.cy + uy * (uSize / 2) + py * lineOff };
+  const endPt = { x: lastRect.cx - ux * (bSize / 2) + px * lineOff, y: lastRect.cy - uy * (bSize / 2) + py * lineOff };
   const midPts = rects.slice(1, -1).map(r => ({ x: r.cx + px * lineOff, y: r.cy + py * lineOff }));
   const sigPts = [startPt, ...midPts, endPt];
 
-  const sigColor = port.isOverLimit ? C.warn : PORT_COLORS[portIndex % PORT_COLORS.length];
+  const sigColor = port.isOverLimit ? C.warn : C.signal;
   parts.push(
     `<polyline points="${sigPts.map((p) => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${sigColor}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`
   );
@@ -386,14 +385,13 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
     const llen = Math.hypot(ddx, ddy) || 1;
     const uux = ddx / llen, uuy = ddy / llen;
     const ppx = -uuy, ppy = uux;
-    const lineOff = Math.max(20, Math.min(fr.w, fr.h) * 0.48);
+    const lineOff = Math.max(14, Math.min(fr.w, fr.h) * 0.32);
     let pts;
     if (connectToBadges) {
       const us = clamp(Math.min(fr.w, fr.h) * 0.66, 13, 34);
       const bs = clamp(Math.min(lr.w, lr.h) * 0.66, 13, 34);
-      const gap = 10;
-      const sp = { x: fr.cx + uux * (us / 2 + gap) - ppx * lineOff, y: fr.cy + uuy * (us / 2 + gap) - ppy * lineOff };
-      const ep = { x: lr.cx - uux * (bs / 2 + gap) - ppx * lineOff, y: lr.cy - uuy * (bs / 2 + gap) - ppy * lineOff };
+      const sp = { x: fr.cx + uux * (us / 2) - ppx * lineOff, y: fr.cy + uuy * (us / 2) - ppy * lineOff };
+      const ep = { x: lr.cx - uux * (bs / 2) - ppx * lineOff, y: lr.cy - uuy * (bs / 2) - ppy * lineOff };
       pts = [sp, ...rects.slice(1, -1).map(r => ({ x: r.cx - ppx * lineOff, y: r.cy - ppy * lineOff })), ep];
     } else {
       pts = rects.map(r => ({ x: r.cx - ppx * lineOff, y: r.cy - ppy * lineOff }));
