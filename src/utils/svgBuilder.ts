@@ -320,17 +320,20 @@ function drawPort(
   const uSize = clamp(Math.min(firstRect.w, firstRect.h) * 0.66, 13, 34);
   const bSize = clamp(Math.min(lastRect.w, lastRect.h) * 0.66, 13, 34);
 
-  // Направление от первой ячейки к последней.
+  // Направление и перпендикуляр (чтобы развести сигнал и питание).
   const dx = lastRect.cx - firstRect.cx;
   const dy = lastRect.cy - firstRect.cy;
   const len = Math.hypot(dx, dy) || 1;
   const ux = dx / len;
   const uy = dy / len;
+  const px = -uy; // перпендикуляр
+  const py = ux;
+  const lineOff = Math.max(14, Math.min(firstRect.w, firstRect.h) * 0.32);
 
-  // Линия сигнала: от края U до края B, через центры промежуточных.
-  const startPt = { x: firstRect.cx + ux * (uSize / 2), y: firstRect.cy + uy * (uSize / 2) };
-  const endPt = { x: lastRect.cx - ux * (bSize / 2), y: lastRect.cy - uy * (bSize / 2) };
-  const midPts = rects.slice(1, -1).map(r => ({ x: r.cx, y: r.cy }));
+  // Сигнал — выше/левее центра, от края U до края B.
+  const startPt = { x: firstRect.cx + ux * (uSize / 2) + px * lineOff, y: firstRect.cy + uy * (uSize / 2) + py * lineOff };
+  const endPt = { x: lastRect.cx - ux * (bSize / 2) + px * lineOff, y: lastRect.cy - uy * (bSize / 2) + py * lineOff };
+  const midPts = rects.slice(1, -1).map(r => ({ x: r.cx + px * lineOff, y: r.cy + py * lineOff }));
   const sigPts = [startPt, ...midPts, endPt];
 
   const sigColor = port.isOverLimit ? C.warn : PORT_COLORS[portIndex % PORT_COLORS.length];
@@ -377,22 +380,22 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
   const drawChain = (cells: CabinetCell[], connectToBadges = false) => {
     if (cells.length === 0) return;
     const rects = cells.map(c => cellRect(c, L));
-    const isH = cells[0].row === cells[cells.length - 1].row;
+    const fr = rects[0], lr = rects[rects.length - 1];
+    const ddx = lr.cx - fr.cx, ddy = lr.cy - fr.cy;
+    const llen = Math.hypot(ddx, ddy) || 1;
+    const uux = ddx / llen, uuy = ddy / llen;
+    const ppx = -uuy, ppy = uux;
+    const lineOff = Math.max(14, Math.min(fr.w, fr.h) * 0.32);
     let pts;
-    if (connectToBadges && rects.length >= 1) {
-      const fr = rects[0], lr = rects[rects.length - 1];
+    if (connectToBadges) {
       const us = clamp(Math.min(fr.w, fr.h) * 0.66, 13, 34);
       const bs = clamp(Math.min(lr.w, lr.h) * 0.66, 13, 34);
-      const ddx = lr.cx - fr.cx, ddy = lr.cy - fr.cy;
-      const llen = Math.hypot(ddx, ddy) || 1;
-      const uux = ddx / llen, uuy = ddy / llen;
-      const sp = { x: fr.cx + uux * (us / 2), y: fr.cy + uuy * (us / 2) };
-      const ep = { x: lr.cx - uux * (bs / 2), y: lr.cy - uuy * (bs / 2) };
-      pts = [sp, ...rects.slice(1, -1).map(r => ({ x: r.cx, y: r.cy })), ep];
+      // Питание — ниже/правее центра, от края U до края B.
+      const sp = { x: fr.cx + uux * (us / 2) - ppx * lineOff, y: fr.cy + uuy * (us / 2) - ppy * lineOff };
+      const ep = { x: lr.cx - uux * (bs / 2) - ppx * lineOff, y: lr.cy - uuy * (bs / 2) - ppy * lineOff };
+      pts = [sp, ...rects.slice(1, -1).map(r => ({ x: r.cx - ppx * lineOff, y: r.cy - ppy * lineOff })), ep];
     } else {
-      const cellMin = Math.min(rects[0].w, rects[0].h);
-      const off = Math.max(18, cellMin * 0.4);
-      pts = rects.map(r => isH ? { x: r.cx, y: r.cy + off } : { x: r.cx + off, y: r.cy });
+      pts = rects.map(r => ({ x: r.cx - ppx * lineOff, y: r.cy - ppy * lineOff }));
     }
     parts.push(
       `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
