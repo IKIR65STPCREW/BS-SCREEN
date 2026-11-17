@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildPortGroups } from "../src/utils/routing";
-import type { CabinetCell } from "../src/types";
+import { buildPortGroups } from "./routing";
+import type { CabinetCell } from "../types";
 
 function makeCabinets(cols: number, rows: number, px = 36864): CabinetCell[] {
   const out: CabinetCell[] = [];
