@@ -328,11 +328,11 @@ function drawPort(
   const uy = dy / len;
   const px = -uy;
   const py = ux;
-  const lineOff = Math.max(14, Math.min(firstRect.w, firstRect.h) * 0.32);
+  const lineOff = Math.max(22, Math.min(firstRect.w, firstRect.h) * 0.5);
 
   // Сигнал — выше/левее, от края U до края B.
-  const startPt = { x: firstRect.cx + ux * (uSize / 2) + px * lineOff, y: firstRect.cy + uy * (uSize / 2) + py * lineOff };
-  const endPt = { x: lastRect.cx - ux * (bSize / 2) + px * lineOff, y: lastRect.cy - uy * (bSize / 2) + py * lineOff };
+  const startPt = { x: firstRect.cx + ux * (uSize / 2 + 12) + px * lineOff, y: firstRect.cy + uy * (uSize / 2 + 12) + py * lineOff };
+  const endPt = { x: lastRect.cx - ux * (bSize / 2 + 12) + px * lineOff, y: lastRect.cy - uy * (bSize / 2 + 12) + py * lineOff };
   const midPts = rects.slice(1, -1).map(r => ({ x: r.cx + px * lineOff, y: r.cy + py * lineOff }));
   const sigPts = [startPt, ...midPts, endPt];
 
@@ -385,13 +385,13 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
     const llen = Math.hypot(ddx, ddy) || 1;
     const uux = ddx / llen, uuy = ddy / llen;
     const ppx = -uuy, ppy = uux;
-    const lineOff = Math.max(14, Math.min(fr.w, fr.h) * 0.32);
+    const lineOff = Math.max(22, Math.min(fr.w, fr.h) * 0.5);
     let pts;
     if (connectToBadges) {
       const us = clamp(Math.min(fr.w, fr.h) * 0.66, 13, 34);
       const bs = clamp(Math.min(lr.w, lr.h) * 0.66, 13, 34);
-      const sp = { x: fr.cx + uux * (us / 2) - ppx * lineOff, y: fr.cy + uuy * (us / 2) - ppy * lineOff };
-      const ep = { x: lr.cx - uux * (bs / 2) - ppx * lineOff, y: lr.cy - uuy * (bs / 2) - ppy * lineOff };
+      const sp = { x: fr.cx + uux * (us / 2 + 12) - ppx * lineOff, y: fr.cy + uuy * (us / 2 + 12) - ppy * lineOff };
+      const ep = { x: lr.cx - uux * (bs / 2 + 12) - ppx * lineOff, y: lr.cy - uuy * (bs / 2 + 12) - ppy * lineOff };
       pts = [sp, ...rects.slice(1, -1).map(r => ({ x: r.cx - ppx * lineOff, y: r.cy - ppy * lineOff })), ep];
     } else {
       pts = rects.map(r => ({ x: r.cx - ppx * lineOff, y: r.cy - ppy * lineOff }));
@@ -399,11 +399,7 @@ function drawPower(parts: string[], screen: ScreenResult, config: ProjectConfig,
     parts.push(
       `<polyline points="${pts.map(p => `${round(p.x)},${round(p.y)}`).join(" ")}" fill="none" stroke="${C.power}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>`
     );
-    const first = rects[0];
-    const markerY = first.cy + 6;
-    parts.push(
-      `<circle cx="${round(first.cx)}" cy="${round(markerY)}" r="4" fill="${C.power}"/>`
-    );
+    // marker removed — was overlapping badges
   };
 
   if (mode === "same_as_signal") {
