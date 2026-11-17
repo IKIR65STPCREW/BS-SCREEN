@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildPortGroups } from "./routing";
-import type { CabinetCell } from "../types";
+import { buildPortGroups } from "../src/utils/routing";
+import type { CabinetCell } from "../src/types";
 
 function makeCabinets(cols: number, rows: number, px = 36864): CabinetCell[] {
   const out: CabinetCell[] = [];
@@ -17,7 +17,7 @@ function makeCabinets(cols: number, rows: number, px = 36864): CabinetCell[] {
         pixelsTotal: px,
         powerW: 100,
         weightKg: 5
-      } as CabinetCell);
+      } as unknown as CabinetCell);
     }
   }
   return out;
