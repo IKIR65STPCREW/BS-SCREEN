@@ -14,7 +14,7 @@ export function AppShell({ toolbar, inputs, results, scheme, warnings }: Props) 
       <header className="app-header">
         <div className="header-brand">
           <img src="./bs-logo.webp" alt="BS" className="header-logo" />
-          <span className="header-title">ScreenFlowBS</span><span className="header-version">v0.8</span>
+          <span className="header-title">ScreenFlowBS</span><span className="header-version">v0.9</span>
         </div>
         <div className="header-toolbar">{toolbar}</div>
       </header>
