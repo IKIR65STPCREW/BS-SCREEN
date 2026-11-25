@@ -22,7 +22,8 @@ export function makeDefaultScreen(partial?: Partial<ScreenConfig>): ScreenConfig
     legsMode: "auto",
     manualLegs: 6,
     fillHalfModules: true,
-    processorId: "vx1000",
+    // processorId не задаём: без переопределения экран берёт общую модель
+    // проекта (config.processorId) в ручном режиме.
     ...partial
   };
 }

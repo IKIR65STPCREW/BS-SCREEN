@@ -39,3 +39,32 @@ describe("buildPortGroups", () => {
     expect(ports[0].cabinets.length).toBe(3);
   });
 });
+
+describe("buildPortGroups — большие экраны", () => {
+  it("40 000 модулей раскладываются быстро и каждый модуль ровно в одном порту", () => {
+    const cols = 400;
+    const rows = 100;
+    const cabs = makeCabinets(cols, rows);
+    const t = performance.now();
+    const ports = buildPortGroups(cabs, cols, rows, 650000, "horizontal_rows", "left");
+    const ms = performance.now() - t;
+    expect(ms).toBeLessThan(500); // было ~2.5 с из-за O(n²) поиска
+    const seen = new Set(ports.flatMap((p) => p.cabinets.map((c) => c.id)));
+    expect(seen.size).toBe(cols * rows);
+  });
+
+  it("порядок обхода сохраняется: справа налево, колонки сверху вниз", () => {
+    const cabs = makeCabinets(3, 2);
+    const ports = buildPortGroups(cabs, 3, 2, 650000, "vertical_columns", "right");
+    expect(ports.map((p) => p.cabinets.map((c) => c.id))).toEqual([
+      ["0-2", "1-2"],
+      ["0-1", "1-1"],
+      ["0-0", "1-0"]
+    ]);
+    const top = buildPortGroups(cabs, 3, 2, 650000, "horizontal_rows", "top");
+    expect(top.map((p) => p.cabinets.map((c) => c.id))).toEqual([
+      ["1-0", "1-1", "1-2"],
+      ["0-0", "0-1", "0-2"]
+    ]);
+  });
+});

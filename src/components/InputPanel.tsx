@@ -10,6 +10,7 @@ import { PROCESSORS } from "../data/processors";
 import { NumericField } from "./NumericField";
 import { IOSSwitch } from "./IOSSwitch";
 import { makeDefaultScreen, makeStageLCRConfig } from "../utils/defaults";
+import { MAX_SCREEN_WIDTH_M, MAX_SCREEN_HEIGHT_M, calcLegs, actualWidthFor } from "../utils/calculations";
 
 interface Props {
   config: ProjectConfig;
@@ -153,7 +154,7 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
           <small className="field-hint">
             {config.processorMode === "auto"
               ? "Под каждый процессор подбирается своя модель; экраны паку­ются по портам."
-              : "Выбранная модель применяется ко всем процессорам проекта."}
+              : "Выбранная модель применяется ко всем экранам; в карточке экрана можно задать свою."}
           </small>
         </label>
 
@@ -162,7 +163,14 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
             <span>Модель</span>
             <select
               value={config.processorId}
-              onChange={(e) => patch({ processorId: e.target.value })}
+              onChange={(e) =>
+                // Общая модель применяется ко ВСЕМ экранам: сбрасываем
+                // переопределения в карточках (их можно задать заново).
+                patch({
+                  processorId: e.target.value,
+                  screens: config.screens.map((s) => ({ ...s, processorId: undefined }))
+                })
+              }
             >
               {PROCESSORS.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} · {p.portCount} порт</option>
@@ -194,7 +202,7 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
             <ul>
               <li>Порты: ряд = порт (без змеек); с backup число удваивается.</li>
               <li><b>Авто:</b> экраны упаковываются на процессор, пока хватает портов и пикселей; кончились — берётся следующий.</li>
-              <li><b>Вручную:</b> для каждого экрана выбирается свой процессор в его карточке.</li>
+              <li><b>Вручную:</b> общая модель применяется ко всем экранам; в карточке экрана её можно переопределить.</li>
               <li><b>Кофры:</b> 0.5×0.5 — 8 шт в кофре, 0.5×1 — 6 шт. Число = округление вверх (модули÷вместимость).</li>
               <li><b>Силовые вводы:</b> мощность ÷ 3.5 кВт (16 А), округление вверх.</li>
               <li><b>Линии данных:</b> число портов × 2 при backup (по кабелю на порт).</li>
@@ -303,8 +311,8 @@ function ScreenCard({ screen, index, total, showFill, manualMode, defaultProcess
 
       <div className="form-grid">
         <div className="two-col">
-          <NumericField label="Ширина, м" value={screen.widthMeters} min={0.5} onChange={(n) => onChange({ widthMeters: n })} />
-          <NumericField label="Высота, м" value={screen.heightMeters} min={0.5} onChange={(n) => onChange({ heightMeters: n })} />
+          <NumericField label="Ширина, м" value={screen.widthMeters} min={0.5} max={MAX_SCREEN_WIDTH_M} onChange={(n) => onChange({ widthMeters: n })} />
+          <NumericField label="Высота, м" value={screen.heightMeters} min={0.5} max={MAX_SCREEN_HEIGHT_M} onChange={(n) => onChange({ heightMeters: n })} />
         </div>
 
         <label className="field">
@@ -351,7 +359,7 @@ function ScreenCard({ screen, index, total, showFill, manualMode, defaultProcess
         )}
 
         <div className="field-note">
-          Ноги: авто — 1 шт на 1 метр ширины ({screen.widthMeters > 0 ? Math.max(1, Math.round(screen.widthMeters)) : 0} шт), ставятся внутри.
+          Ноги: авто — 1 шт на 1 метр ширины ({calcLegs(actualWidthFor(screen.widthMeters))} шт), ставятся внутри.
         </div>
       </div>
     </div>

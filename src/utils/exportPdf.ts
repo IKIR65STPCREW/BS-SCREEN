@@ -31,7 +31,9 @@ export async function exportPdf(
   const pdf = new jsPDF({
     orientation: "landscape",
     unit: "mm",
-    format: paper
+    format: paper,
+    // Без сжатия PNG ложился в PDF «сырыми» пикселями (~37 МБ на схему).
+    compress: true
   });
 
   // Размер листа.
@@ -55,7 +57,7 @@ export async function exportPdf(
   const drawX = (pageW - drawW) / 2;
   const drawY = (pageH - drawH) / 2;
 
-  pdf.addImage(pngDataUrl, "PNG", drawX, drawY, drawW, drawH);
+  pdf.addImage(pngDataUrl, "PNG", drawX, drawY, drawW, drawH, undefined, "FAST");
   pdf.save(`led-scheme-${sanitize(projectName || "project")}.pdf`);
 }
 
@@ -63,7 +65,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
+    reader.onerror = () => reject(reader.error ?? new Error("Не удалось прочитать изображение."));
     reader.readAsDataURL(blob);
   });
 }
@@ -72,7 +74,7 @@ function getImageDims(dataUrl: string): Promise<{ w: number; h: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve({ w: img.width, h: img.height });
-    img.onerror = reject;
+    img.onerror = () => reject(new Error("Не удалось загрузить изображение для PDF."));
     img.src = dataUrl;
   });
 }

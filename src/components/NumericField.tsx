@@ -8,7 +8,7 @@ interface Props {
   integer?: boolean;
   /** Минимум — применяется только при потере фокуса, чтобы не мешать вводу. */
   min?: number;
-  /** Максимум — применяется при потере фокуса. */
+  /** Максимум — применяется сразу при вводе и при потере фокуса. */
   max?: number;
   /** Подсказка под полем. */
   hint?: string;
@@ -43,7 +43,7 @@ export function NumericField({ label, value, onChange, integer, min, max, hint }
     const normalized = raw.replace(",", ".").trim();
     if (normalized === "" || normalized === "." || normalized === "-") return null;
     const n = integer ? parseInt(normalized, 10) : parseFloat(normalized);
-    return isNaN(n) ? null : n;
+    return Number.isFinite(n) ? n : null;
   };
 
   const handleChange = (raw: string) => {
@@ -62,7 +62,9 @@ export function NumericField({ label, value, onChange, integer, min, max, hint }
     }
     setText(cleaned);
     const n = parse(cleaned);
-    if (n !== null) onChange(n);
+    // Максимум применяем сразу (опечатка «3000» не должна уходить в расчёт),
+    // минимум — только на blur, чтобы не мешать вводу.
+    if (n !== null) onChange(max !== undefined && n > max ? max : n);
   };
 
   const handleBlur = () => {

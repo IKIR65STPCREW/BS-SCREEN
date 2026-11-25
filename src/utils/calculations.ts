@@ -16,14 +16,37 @@ import { buildPortGroups } from "./routing";
 
 const EPS = 1e-6;
 
+/**
+ * Верхние пределы размеров экрана. Защита от опечаток («3000» вместо «30»):
+ * без них расчёт и SVG на сотни тысяч модулей вешают вкладку.
+ */
+export const MAX_SCREEN_WIDTH_M = 200;
+export const MAX_SCREEN_HEIGHT_M = 50;
+
+/** Нечисловые/отрицательные → 0, сверх лимита → лимит. */
+function sanitizeSize(v: number, max: number): number {
+  if (!Number.isFinite(v) || v < 0) return 0;
+  return Math.min(v, max);
+}
+
 function fmtNum(n: number): string {
   if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
   return String(parseFloat(n.toFixed(3)));
 }
 
-/** Ноги: всегда 1 шт на 1 метр ширины экрана, ставятся внутри. Минимум 1. */
-function calcLegs(screenWidthM: number): number {
-  return Math.max(1, Math.round(screenWidthM));
+/**
+ * Ноги: 1 шт на 1 метр ФАКТИЧЕСКОЙ ширины экрана (целое число модулей),
+ * ставятся внутри. Минимум 1, если экран вообще собирается.
+ */
+export function calcLegs(actualWidthM: number): number {
+  if (!(actualWidthM > 0)) return 0;
+  return Math.max(1, Math.round(actualWidthM));
+}
+
+/** Фактическая ширина: запрошенная, округлённая вниз до целого числа модулей. */
+export function actualWidthFor(requestedWidthM: number, moduleWidthM = 0.5): number {
+  const w = sanitizeSize(requestedWidthM, MAX_SCREEN_WIDTH_M);
+  return Math.max(0, Math.floor(w / moduleWidthM + EPS)) * moduleWidthM;
 }
 
 /** Соотношение сторон в виде упрощённой дроби, напр. 7:3 или 16:9. */
@@ -99,8 +122,8 @@ export function calculateScreen(
   preset: CabinetPreset,
   signalRoutingMode = screen.signalRoutingMode
 ): ScreenResult {
-  const screenW = screen.widthMeters;
-  const screenH = screen.heightMeters;
+  const screenW = sanitizeSize(screen.widthMeters, MAX_SCREEN_WIDTH_M);
+  const screenH = sanitizeSize(screen.heightMeters, MAX_SCREEN_HEIGHT_M);
 
   // Все модули серии P2.6 имеют ширину 0.5 м → колонки считаем по 0.5.
   const colW = preset.widthMeters; // 0.5
@@ -164,12 +187,17 @@ export function calculateScreen(
 
   const totalPowerWatts = cabinets.reduce((s, c) => s + c.powerWatts, 0);
   const totalWeightKg = cabinets.reduce((s, c) => s + c.weightKg, 0);
-  const legsCount = calcLegs(screenW);
+  const legsCount = calcLegs(cabinetCountX * colW);
 
   // Фактическая высота — сумма высот рядов.
   const actualHeightM = rows.reduce((s, r) => s + r.heightM, 0);
 
   const warnings: string[] = [];
+  if (screen.widthMeters > MAX_SCREEN_WIDTH_M || screen.heightMeters > MAX_SCREEN_HEIGHT_M) {
+    warnings.push(
+      `Размер ограничен до ${MAX_SCREEN_WIDTH_M}×${MAX_SCREEN_HEIGHT_M} м (макс. ширина × высота).`
+    );
+  }
   if (Math.abs(rawCountX - Math.round(rawCountX)) > 1e-3) {
     warnings.push(
       `Ширина (${fmtNum(screenW)} м) не делится нацело на 0.5 м → ` +
