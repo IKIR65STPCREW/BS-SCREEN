@@ -15,7 +15,12 @@ function readAll(): SavedProject[] {
 }
 
 function writeAll(list: SavedProject[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error(e);
+    throw new Error("Хранилище браузера переполнено или недоступно — проект не сохранён.");
+  }
 }
 
 export function listProjects(): SavedProject[] {
@@ -69,8 +74,12 @@ export function getCurrentId(): string | null {
 }
 
 export function setCurrentId(id: string | null) {
-  if (id) localStorage.setItem(CURRENT_KEY, id);
-  else localStorage.removeItem(CURRENT_KEY);
+  try {
+    if (id) localStorage.setItem(CURRENT_KEY, id);
+    else localStorage.removeItem(CURRENT_KEY);
+  } catch (e) {
+    console.warn("Не удалось сохранить текущий проект:", e);
+  }
 }
 
 export function getProjectById(id: string): SavedProject | null {

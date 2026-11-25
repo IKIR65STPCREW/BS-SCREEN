@@ -24,26 +24,30 @@ export function ProjectManager({ open, onClose, config, currentId, onLoad, onSav
 
   if (!open) return null;
 
-  const handleSave = () => {
-    const p = saveProject(config, currentId ?? undefined);
-    onSaved(p.id);
-    refresh();
-  };
-  const handleSaveAsNew = () => {
-    const p = saveProject(config);
-    onSaved(p.id);
-    refresh();
-  };
-  const handleDelete = (id: string) => {
-    if (confirm("Удалить проект?")) {
-      deleteProject(id);
-      refresh();
+  // Ошибки записи в localStorage (переполнение и т.п.) показываем пользователю.
+  const safe = (fn: () => void) => {
+    try {
+      fn();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
     }
-  };
-  const handleDuplicate = (id: string) => {
-    duplicateProject(id);
     refresh();
   };
+
+  const handleSave = () =>
+    safe(() => {
+      const p = saveProject(config, currentId ?? undefined);
+      onSaved(p.id);
+    });
+  const handleSaveAsNew = () =>
+    safe(() => {
+      const p = saveProject(config);
+      onSaved(p.id);
+    });
+  const handleDelete = (id: string) => {
+    if (confirm("Удалить проект?")) safe(() => deleteProject(id));
+  };
+  const handleDuplicate = (id: string) => safe(() => duplicateProject(id));
 
   return (
     <div className="modal-backdrop" onClick={onClose}>

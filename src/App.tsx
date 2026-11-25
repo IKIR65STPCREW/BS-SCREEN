@@ -116,7 +116,12 @@ export function App() {
 
   // Автосохранение черновика.
   useEffect(() => {
-    localStorage.setItem("led-scheme-builder.draft", JSON.stringify(config));
+    // Переполненное/недоступное хранилище не должно ронять приложение.
+    try {
+      localStorage.setItem("led-scheme-builder.draft", JSON.stringify(config));
+    } catch (e) {
+      console.warn("Не удалось сохранить черновик:", e);
+    }
   }, [config]);
 
   // Расчёт.
