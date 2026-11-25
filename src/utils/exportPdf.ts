@@ -31,7 +31,9 @@ export async function exportPdf(
   const pdf = new jsPDF({
     orientation: "landscape",
     unit: "mm",
-    format: paper
+    format: paper,
+    // Без сжатия PNG ложился в PDF «сырыми» пикселями (~37 МБ на схему).
+    compress: true
   });
 
   // Размер листа.
@@ -55,7 +57,7 @@ export async function exportPdf(
   const drawX = (pageW - drawW) / 2;
   const drawY = (pageH - drawH) / 2;
 
-  pdf.addImage(pngDataUrl, "PNG", drawX, drawY, drawW, drawH);
+  pdf.addImage(pngDataUrl, "PNG", drawX, drawY, drawW, drawH, undefined, "FAST");
   pdf.save(`led-scheme-${sanitize(projectName || "project")}.pdf`);
 }
 
