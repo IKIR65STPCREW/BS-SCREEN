@@ -34,9 +34,19 @@ function fmtNum(n: number): string {
   return String(parseFloat(n.toFixed(3)));
 }
 
-/** Ноги: всегда 1 шт на 1 метр ширины экрана, ставятся внутри. Минимум 1. */
-function calcLegs(screenWidthM: number): number {
-  return Math.max(1, Math.round(screenWidthM));
+/**
+ * Ноги: 1 шт на 1 метр ФАКТИЧЕСКОЙ ширины экрана (целое число модулей),
+ * ставятся внутри. Минимум 1, если экран вообще собирается.
+ */
+export function calcLegs(actualWidthM: number): number {
+  if (!(actualWidthM > 0)) return 0;
+  return Math.max(1, Math.round(actualWidthM));
+}
+
+/** Фактическая ширина: запрошенная, округлённая вниз до целого числа модулей. */
+export function actualWidthFor(requestedWidthM: number, moduleWidthM = 0.5): number {
+  const w = sanitizeSize(requestedWidthM, MAX_SCREEN_WIDTH_M);
+  return Math.max(0, Math.floor(w / moduleWidthM + EPS)) * moduleWidthM;
 }
 
 /** Соотношение сторон в виде упрощённой дроби, напр. 7:3 или 16:9. */
@@ -177,7 +187,7 @@ export function calculateScreen(
 
   const totalPowerWatts = cabinets.reduce((s, c) => s + c.powerWatts, 0);
   const totalWeightKg = cabinets.reduce((s, c) => s + c.weightKg, 0);
-  const legsCount = calcLegs(screenW);
+  const legsCount = calcLegs(cabinetCountX * colW);
 
   // Фактическая высота — сумма высот рядов.
   const actualHeightM = rows.reduce((s, r) => s + r.heightM, 0);

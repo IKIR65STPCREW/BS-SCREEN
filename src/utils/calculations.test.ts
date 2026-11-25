@@ -24,3 +24,14 @@ describe("calculateScreen — защита от некорректных раз�
     }
   });
 });
+
+describe("ноги считаются от фактической ширины", () => {
+  it("7.7 м → фактически 7.5 м → 8 ног; 7.2 м → 7 м → 7 ног", () => {
+    expect(calculateScreen(makeDefaultScreen({ widthMeters: 7.7 }), half).legsCount).toBe(8);
+    expect(calculateScreen(makeDefaultScreen({ widthMeters: 7.2 }), half).legsCount).toBe(7);
+    expect(calculateScreen(makeDefaultScreen({ widthMeters: 2.4 }), half).legsCount).toBe(2);
+  });
+  it("экран без модулей — 0 ног", () => {
+    expect(calculateScreen(makeDefaultScreen({ widthMeters: 0.3 }), half).legsCount).toBe(0);
+  });
+});

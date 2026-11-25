@@ -10,7 +10,7 @@ import { PROCESSORS } from "../data/processors";
 import { NumericField } from "./NumericField";
 import { IOSSwitch } from "./IOSSwitch";
 import { makeDefaultScreen, makeStageLCRConfig } from "../utils/defaults";
-import { MAX_SCREEN_WIDTH_M, MAX_SCREEN_HEIGHT_M } from "../utils/calculations";
+import { MAX_SCREEN_WIDTH_M, MAX_SCREEN_HEIGHT_M, calcLegs, actualWidthFor } from "../utils/calculations";
 
 interface Props {
   config: ProjectConfig;
@@ -359,7 +359,7 @@ function ScreenCard({ screen, index, total, showFill, manualMode, defaultProcess
         )}
 
         <div className="field-note">
-          Ноги: авто — 1 шт на 1 метр ширины ({screen.widthMeters > 0 ? Math.max(1, Math.round(screen.widthMeters)) : 0} шт), ставятся внутри.
+          Ноги: авто — 1 шт на 1 метр ширины ({calcLegs(actualWidthFor(screen.widthMeters))} шт), ставятся внутри.
         </div>
       </div>
     </div>
