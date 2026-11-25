@@ -65,7 +65,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
+    reader.onerror = () => reject(reader.error ?? new Error("Не удалось прочитать изображение."));
     reader.readAsDataURL(blob);
   });
 }
@@ -74,7 +74,7 @@ function getImageDims(dataUrl: string): Promise<{ w: number; h: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve({ w: img.width, h: img.height });
-    img.onerror = reject;
+    img.onerror = () => reject(new Error("Не удалось загрузить изображение для PDF."));
     img.src = dataUrl;
   });
 }

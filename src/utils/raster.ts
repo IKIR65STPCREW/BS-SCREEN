@@ -58,7 +58,8 @@ export async function rasterizeSvg(
       // Без этого лого часто пропадает при экспорте в canvas.
       setTimeout(resolve, 120);
     };
-    img.onerror = (e) => reject(e);
+    // Event из onerror в alert превращался в «[object Event]».
+    img.onerror = () => reject(new Error("Не удалось отрисовать схему в изображение."));
     img.src = encoded;
   });
 
@@ -66,6 +67,8 @@ export async function rasterizeSvg(
   canvas.width = Math.round(w * o.scale);
   canvas.height = Math.round(h * o.scale);
   const ctx = canvas.getContext("2d");
+  // Слишком большой холст (лимиты браузера, особенно iOS Safari) — контекст
+  // не создаётся или toBlob вернёт null; ниже даём понятную ошибку.
   if (!ctx) throw new Error("Canvas 2D context недоступен.");
   ctx.fillStyle = o.background;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -76,7 +79,7 @@ export async function rasterizeSvg(
     canvas.toBlob(
       (blob) => {
         if (blob) resolve(blob);
-        else reject(new Error("toBlob вернул null."));
+        else reject(new Error("Не удалось создать изображение: схема слишком большая для этого браузера."));
       },
       mime,
       o.quality
