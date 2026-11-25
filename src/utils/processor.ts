@@ -25,8 +25,17 @@ import { PROCESSORS_BY_CAPACITY, getProcessorById } from "../data/processors";
  *  отсортированного по ёмкости. Если ни один не тянет в одиночку — сообщаем,
  *  сколько штук понадобится (каскад/несколько контроллеров).
  */
+/** Сколько портов реально занимает проект: UP + (опц.) BACKUP. */
+function projectPortsNeeded(result: ProjectResult): number {
+  return result.totalPorts * (result.backupEnabled ? 2 : 1);
+}
+
+function portsSuffix(result: ProjectResult): string {
+  return result.backupEnabled ? " (UP+BACKUP)" : "";
+}
+
 export function recommendProcessor(result: ProjectResult): ProcessorRecommendation {
-  const needPorts = result.totalPorts;
+  const needPorts = projectPortsNeeded(result);
   const needPixels = result.totalPixels;
   const needW = result.combinedResolutionX;
   const needH = result.combinedResolutionY;
@@ -43,7 +52,7 @@ export function recommendProcessor(result: ProjectResult): ProcessorRecommendati
 
   if (chosen) {
     reasons.push(
-      `Нужно портов: ${needPorts}. У ${chosen.name} — ${chosen.portCount} порт(ов). ✔`
+      `Нужно портов: ${needPorts}${portsSuffix(result)}. У ${chosen.name} — ${chosen.portCount} порт(ов). ✔`
     );
     reasons.push(
       `Нужно пикселей: ${needPixels.toLocaleString("ru-RU")}. Ёмкость ${chosen.name}: ${chosen.maxTotalPixels.toLocaleString("ru-RU")}. ✔`
@@ -74,7 +83,7 @@ export function recommendProcessor(result: ProjectResult): ProcessorRecommendati
     `Ни один контроллер не тянет проект в одиночку.`
   );
   reasons.push(
-    `Требуется портов ${needPorts}, пикселей ${needPixels.toLocaleString("ru-RU")}.`
+    `Требуется портов ${needPorts}${portsSuffix(result)}, пикселей ${needPixels.toLocaleString("ru-RU")}.`
   );
   reasons.push(
     `Рекомендуется ${unitsNeeded}× ${top.name} (по ${top.portCount} порт., ${top.maxTotalPixels.toLocaleString("ru-RU")} px каждый).`
@@ -106,7 +115,7 @@ export function resolveProcessor(
   if (mode === "manual") {
     const p = getProcessorById(manualId);
     if (p) {
-      const needPorts = result.totalPorts;
+      const needPorts = projectPortsNeeded(result);
       const needPixels = result.totalPixels;
       const fitsPorts = p.portCount >= needPorts;
       const fitsPixels = p.maxTotalPixels >= needPixels;
@@ -114,7 +123,7 @@ export function resolveProcessor(
       const reasons: string[] = [];
       reasons.push(`Выбран вручную: ${p.name}.`);
       reasons.push(
-        `Порты: нужно ${needPorts}, есть ${p.portCount}. ${fitsPorts ? "✔" : "✘ не хватает!"}`
+        `Порты: нужно ${needPorts}${portsSuffix(result)}, есть ${p.portCount}. ${fitsPorts ? "✔" : "✘ не хватает!"}`
       );
       reasons.push(
         `Пиксели: нужно ${needPixels.toLocaleString("ru-RU")}, ёмкость ${p.maxTotalPixels.toLocaleString("ru-RU")}. ${fitsPixels ? "✔" : "✘ перегруз!"}`
