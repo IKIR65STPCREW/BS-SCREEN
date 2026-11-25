@@ -153,7 +153,7 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
           <small className="field-hint">
             {config.processorMode === "auto"
               ? "Под каждый процессор подбирается своя модель; экраны паку­ются по портам."
-              : "Выбранная модель применяется ко всем процессорам проекта."}
+              : "Выбранная модель применяется ко всем экранам; в карточке экрана можно задать свою."}
           </small>
         </label>
 
@@ -162,7 +162,14 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
             <span>Модель</span>
             <select
               value={config.processorId}
-              onChange={(e) => patch({ processorId: e.target.value })}
+              onChange={(e) =>
+                // Общая модель применяется ко ВСЕМ экранам: сбрасываем
+                // переопределения в карточках (их можно задать заново).
+                patch({
+                  processorId: e.target.value,
+                  screens: config.screens.map((s) => ({ ...s, processorId: undefined }))
+                })
+              }
             >
               {PROCESSORS.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} · {p.portCount} порт</option>
@@ -194,7 +201,7 @@ export function InputPanel({ config, onChange, recommendation, patchPlan, theme,
             <ul>
               <li>Порты: ряд = порт (без змеек); с backup число удваивается.</li>
               <li><b>Авто:</b> экраны упаковываются на процессор, пока хватает портов и пикселей; кончились — берётся следующий.</li>
-              <li><b>Вручную:</b> для каждого экрана выбирается свой процессор в его карточке.</li>
+              <li><b>Вручную:</b> общая модель применяется ко всем экранам; в карточке экрана её можно переопределить.</li>
               <li><b>Кофры:</b> 0.5×0.5 — 8 шт в кофре, 0.5×1 — 6 шт. Число = округление вверх (модули÷вместимость).</li>
               <li><b>Силовые вводы:</b> мощность ÷ 3.5 кВт (16 А), округление вверх.</li>
               <li><b>Линии данных:</b> число портов × 2 при backup (по кабелю на порт).</li>
