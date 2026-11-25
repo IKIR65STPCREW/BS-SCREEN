@@ -10,6 +10,7 @@ import { PROCESSORS } from "../data/processors";
 import { NumericField } from "./NumericField";
 import { IOSSwitch } from "./IOSSwitch";
 import { makeDefaultScreen, makeStageLCRConfig } from "../utils/defaults";
+import { MAX_SCREEN_WIDTH_M, MAX_SCREEN_HEIGHT_M } from "../utils/calculations";
 
 interface Props {
   config: ProjectConfig;
@@ -310,8 +311,8 @@ function ScreenCard({ screen, index, total, showFill, manualMode, defaultProcess
 
       <div className="form-grid">
         <div className="two-col">
-          <NumericField label="Ширина, м" value={screen.widthMeters} min={0.5} onChange={(n) => onChange({ widthMeters: n })} />
-          <NumericField label="Высота, м" value={screen.heightMeters} min={0.5} onChange={(n) => onChange({ heightMeters: n })} />
+          <NumericField label="Ширина, м" value={screen.widthMeters} min={0.5} max={MAX_SCREEN_WIDTH_M} onChange={(n) => onChange({ widthMeters: n })} />
+          <NumericField label="Высота, м" value={screen.heightMeters} min={0.5} max={MAX_SCREEN_HEIGHT_M} onChange={(n) => onChange({ heightMeters: n })} />
         </div>
 
         <label className="field">

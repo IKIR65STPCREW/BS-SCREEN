@@ -29,8 +29,12 @@ export function buildPortGroups(
 ): PortGroup[] {
   if (countX === 0 || countY === 0 || cabinets.length === 0) return [];
 
+  // Индекс по (row, col): поиск через find() давал O(n²) и вешал UI на
+  // больших экранах (40 000 модулей ≈ 3–4 с на каждое нажатие клавиши).
+  const index = new Map<number, CabinetCell>();
+  for (const c of cabinets) index.set(c.row * countX + c.col, c);
   const cellAt = (row: number, col: number): CabinetCell | undefined =>
-    cabinets.find((c) => c.row === row && c.col === col);
+    index.get(row * countX + col);
 
   const rightToLeft = signalInputSide === "right";
   const topToBottom = signalInputSide === "top";

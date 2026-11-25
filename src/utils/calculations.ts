@@ -16,6 +16,19 @@ import { buildPortGroups } from "./routing";
 
 const EPS = 1e-6;
 
+/**
+ * Верхние пределы размеров экрана. Защита от опечаток («3000» вместо «30»):
+ * без них расчёт и SVG на сотни тысяч модулей вешают вкладку.
+ */
+export const MAX_SCREEN_WIDTH_M = 200;
+export const MAX_SCREEN_HEIGHT_M = 50;
+
+/** Нечисловые/отрицательные → 0, сверх лимита → лимит. */
+function sanitizeSize(v: number, max: number): number {
+  if (!Number.isFinite(v) || v < 0) return 0;
+  return Math.min(v, max);
+}
+
 function fmtNum(n: number): string {
   if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
   return String(parseFloat(n.toFixed(3)));
@@ -99,8 +112,8 @@ export function calculateScreen(
   preset: CabinetPreset,
   signalRoutingMode = screen.signalRoutingMode
 ): ScreenResult {
-  const screenW = screen.widthMeters;
-  const screenH = screen.heightMeters;
+  const screenW = sanitizeSize(screen.widthMeters, MAX_SCREEN_WIDTH_M);
+  const screenH = sanitizeSize(screen.heightMeters, MAX_SCREEN_HEIGHT_M);
 
   // Все модули серии P2.6 имеют ширину 0.5 м → колонки считаем по 0.5.
   const colW = preset.widthMeters; // 0.5
@@ -170,6 +183,11 @@ export function calculateScreen(
   const actualHeightM = rows.reduce((s, r) => s + r.heightM, 0);
 
   const warnings: string[] = [];
+  if (screen.widthMeters > MAX_SCREEN_WIDTH_M || screen.heightMeters > MAX_SCREEN_HEIGHT_M) {
+    warnings.push(
+      `Размер ограничен до ${MAX_SCREEN_WIDTH_M}×${MAX_SCREEN_HEIGHT_M} м (макс. ширина × высота).`
+    );
+  }
   if (Math.abs(rawCountX - Math.round(rawCountX)) > 1e-3) {
     warnings.push(
       `Ширина (${fmtNum(screenW)} м) не делится нацело на 0.5 м → ` +
